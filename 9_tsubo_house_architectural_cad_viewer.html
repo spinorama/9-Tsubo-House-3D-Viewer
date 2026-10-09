@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>9-Tsubo House (Makoto Masuzawa 1952) // Standalone Architectural CAD Viewer</title>
+
+  <!-- Google Web Fonts: Antonio, Barlow Semi Condensed, Barlow, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;600;700&family=Barlow+Semi+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js 3D Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    /* ========================================================
+       DUAL-ENGINE STYLESHEET: STAR TREK LCARS & GERMAN DIN E-INK
+       ======================================================== */
+    * {
+      transition: background-color 0.15s ease,
+                  color 0.15s ease,
+                  border-color 0.15s ease,
+                  border-radius 0.15s ease,
+                  letter-spacing 0.15s ease;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    input, textarea {
+      user-select: text;
+    }
+
+    /* State 1: LCARS Active (24th Century Okuda) */
+    body[data-style="lcars"] {
+      --bg: #000000;
+      --card-bg: #000000;
+      --border-color: #000000;
+      --text: #FFCC99;
+      --muted: #FF9900;
+      --accent-primary: #FF9900;
+      --accent-secondary: #CC99CC;
+      --accent-tertiary: #5588EE;
+      --accent-alert: #FF5500;
+      --accent-cyan: #00B4D8;
+      --accent-contrast: #000000;
+      --font-body: 'Antonio', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-elbow: 42px;
+      --radius-pill: 9999px;
+      --radius-card: 0px;
+      --letter-spacing: 0.08em;
+      --text-transform: uppercase;
+      --surface-border: 2px solid #000000;
+      --panel-bg: #060910;
+      --sheet-bg: rgba(6, 9, 16, 0.95);
+      --button-weight: 700;
+    }
+
+    /* State 2: German DIN E-Ink Active (DIN 1451 Paper) */
+    body[data-style="eink"] {
+      --bg: #FFFFFF;
+      --card-bg: #FFFFFF;
+      --border-color: #000000;
+      --text: #050505;
+      --muted: #555555;
+      --accent-primary: #000000;
+      --accent-secondary: #000000;
+      --accent-tertiary: #000000;
+      --accent-alert: #000000;
+      --accent-cyan: #000000;
+      --accent-contrast: #FFFFFF;
+      --font-body: 'DIN Alternate', 'DIN 1451 Mittelschrift', 'Barlow Semi Condensed', 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-elbow: 0px;
+      --radius-pill: 0px;
+      --radius-card: 0px;
+      --letter-spacing: 0.02em;
+      --text-transform: none;
+      --surface-border: 1.5px solid #000000;
+      --panel-bg: #FFFFFF;
+      --sheet-bg: rgba(255, 255, 255, 0.98);
+      --button-weight: 600;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      letter-spacing: var(--letter-spacing);
+      text-transform: var(--text-transform);
+      margin: 0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      touch-action: none;
+    }
+
+    .font-mono-code {
+      font-family: var(--font-mono);
+    }
+
+    /* Iconic LCARS Sweeps and Radii */
+    .lcars-elbow-top {
+      border-top-left-radius: var(--radius-elbow);
+    }
+    .lcars-elbow-bottom {
+      border-bottom-left-radius: var(--radius-elbow);
+    }
+    .lcars-pill-left {
+      border-top-left-radius: var(--radius-pill);
+      border-bottom-left-radius: var(--radius-pill);
+    }
+    .lcars-pill-right {
+      border-top-right-radius: var(--radius-pill);
+      border-bottom-right-radius: var(--radius-pill);
+    }
+    .lcars-pill {
+      border-radius: var(--radius-pill);
+    }
+
+    /* German DIN Zero-Radius Overrides */
+    body[data-style="eink"] .lcars-elbow-top,
+    body[data-style="eink"] .lcars-elbow-bottom,
+    body[data-style="eink"] .lcars-pill-left,
+    body[data-style="eink"] .lcars-pill-right,
+    body[data-style="eink"] .lcars-pill {
+      border-radius: 0px !important;
+    }
+
+    .deck-surface {
+      background-color: var(--panel-bg);
+      border: var(--surface-border);
+    }
+
+    .tactile-btn {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: var(--button-weight);
+      transition: transform 0.08s ease, filter 0.08s ease, background-color 0.15s ease;
+    }
+    .tactile-btn:active {
+      transform: scale(0.97);
+      filter: brightness(1.2);
+    }
+    body[data-style="eink"] .tactile-btn:active {
+      transform: scale(0.98);
+      filter: invert(0.2);
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--muted);
+    }
+
+    /* 3D Canvas Container */
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    /* 3D Hotspot Screen Tags */
+    .hotspot-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      pointer-events: auto;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .hotspot-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #FF9900;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 0 10px rgba(255, 153, 0, 0.9);
+      animation: pulse 1.6s infinite ease-in-out;
+    }
+    body[data-style="eink"] .hotspot-dot {
+      background: #000000;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 0 0 1px #000000;
+      animation: none;
+      border-radius: 0px;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
+    /* Collapsible Slide-in Drawers */
+    .drawer-panel {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+      background-color: var(--sheet-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .drawer-panel.collapsed-left {
+      transform: translateX(-105%);
+      pointer-events: none;
+      opacity: 0;
+    }
+    .drawer-panel.collapsed-right {
+      transform: translateX(105%);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    /* Safe Area Insets */
+    .pt-safe { padding-top: max(0.5rem, env(safe-area-inset-top)); }
+    .pb-safe { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+  </style>
+</head>
+<body data-style="lcars" class="h-screen w-screen relative select-none">
+
+  <!-- Three.js Canvas Container -->
+  <div id="canvas-container"></div>
+  
+  <!-- Projected 3D Hotspots HTML Layer -->
+  <div id="hotspot-layer" class="pointer-events-none absolute inset-0 z-10 overflow-hidden"></div>
+
+  <!-- HUD Interface Layer -->
+  <div id="hud-root" class="relative z-20 pointer-events-none flex flex-col justify-between h-full p-2 md:p-3 pt-safe pb-safe transition-opacity duration-200">
+    
+    <!-- Top Persistent Masthead Bar -->
+    <header class="pointer-events-auto w-full flex items-center justify-between gap-1.5 md:gap-2">
+      
+      <!-- LCARS Left Elbow / Masthead Badge -->
+      <div class="flex items-center gap-1.5 md:gap-2 min-w-0">
+        <div class="lcars-elbow-top h-9 md:h-10 px-2.5 md:w-36 flex items-center justify-center font-bold text-[11px] md:text-sm tracking-wider whitespace-nowrap shrink-0"
+             style="background-color: var(--accent-primary); color: var(--accent-contrast);">
+          <span id="masthead-badge">LCARS 9-TSUBO</span>
+        </div>
+        <div class="h-8 md:h-9 px-2 md:px-3 flex items-center deck-surface border truncate" style="border-color: var(--muted)">
+          <div class="text-[10px] md:text-xs font-semibold tracking-wider truncate" id="masthead-title">
+            <span class="md:inline hidden">MAKOTO MASUZAWA 1952 // </span>9-TSUBO MINIMUM HOUSE CAD
+          </div>
+        </div>
+        <div class="hidden xl:flex items-center px-2 py-1 text-[11px] font-mono-code opacity-80 shrink-0" id="telemetry-stardate">
+          SD: 78104.2 // 3×3 KEN (5.46M²)
+        </div>
+      </div>
+
+      <!-- Center / Right Top Controls -->
+      <div class="flex items-center gap-1 shrink-0 flex-wrap">
+        <!-- Direct HTML File Download Action -->
+        <button id="btn-download-html" title="Download Complete Single-File HTML to Your Device" class="tactile-btn h-8 px-2 md:px-3 text-[10px] md:text-xs uppercase lcars-pill border font-bold"
+                style="background: rgba(0, 180, 216, 0.25); border-color: var(--accent-cyan); color: var(--text);">
+          <span>💾 SAVE HTML</span>
+        </button>
+
+        <!-- Blueprint 2D Plan Modal Toggle -->
+        <button id="btn-toggle-blueprint" title="View 1F/2F Architectural Blueprints" class="tactile-btn h-8 px-2 md:px-3 text-[10px] md:text-xs uppercase lcars-pill border"
+                style="background: transparent; border-color: var(--accent-tertiary); color: var(--text);">
+          <span class="md:inline hidden">📐 CAD PLANS</span>
+          <span class="md:hidden inline text-xs">📐</span>
+        </button>
+
+        <!-- SFX Toggle -->
+        <button id="btn-sound" title="Toggle Procedural Audio [S]" class="tactile-btn h-8 px-2 md:px-2.5 text-[10px] md:text-xs uppercase lcars-pill border"
+                style="background: transparent; border-color: var(--accent-secondary); color: var(--text);">
+          <span id="sound-label" class="md:inline hidden">🔊 SFX: ON</span>
+          <span class="md:hidden inline text-xs">🔊</span>
+        </button>
+
+        <!-- Theme Switcher (LCARS <-> DIN E-INK) -->
+        <button id="btn-theme-switch" title="Toggle Theme [T]" class="tactile-btn h-8 px-2 md:px-3 text-[10px] md:text-xs uppercase lcars-pill border font-bold"
+                style="background-color: var(--accent-primary); color: var(--accent-contrast); border-color: var(--accent-primary);">
+          <span id="theme-btn-text" class="md:inline hidden">STYLE: OKUDA (T)</span>
+          <span class="md:hidden inline font-mono-code font-bold">STYLE</span>
+        </button>
+
+        <!-- Zen Mode Button -->
+        <button id="btn-zen-mode" title="Toggle UI [Z]" class="tactile-btn h-8 px-2 text-xs lcars-pill border"
+                style="background: transparent; border-color: var(--muted); color: var(--text);">
+          <span>👁️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- CENTER WORKSPACE: LEFT & RIGHT COMMAND PANELS (Collapsible & Responsive) -->
+    <div class="flex-1 flex justify-between items-start gap-2 my-2 overflow-hidden pointer-events-none relative">
+      
+      <!-- LEFT CONSOLE: Architectural Configurator & Views -->
+      <aside id="panel-left" class="drawer-panel pointer-events-auto w-72 md:w-80 max-h-[76vh] overflow-y-auto deck-surface p-3 flex flex-col gap-2 rounded shadow-2xl border z-30"
+             style="border-color: var(--muted); background-color: var(--panel-bg);">
+        
+        <div class="flex items-center justify-between border-b pb-1" style="border-color: var(--muted)">
+          <span class="text-xs font-bold tracking-wider" style="color: var(--accent-primary)">
+            SYS.01 // CAMERA PRESETS
+          </span>
+          <button class="md:hidden text-xs px-2 py-0.5 rounded border btn-close-left-drawer" style="border-color: var(--muted); color: var(--text)">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1">
+          <button class="tactile-btn py-1.5 px-2 text-[11px] lcars-pill-left text-left border" 
+                  data-view="facade" style="background: rgba(255,153,0,0.15); border-color: var(--accent-primary); color: var(--text);">
+            1. SOUTH FACADE
+          </button>
+          <button class="tactile-btn py-1.5 px-2 text-[11px] lcars-pill-right text-left border" 
+                  data-view="living" style="background: rgba(85,136,238,0.15); border-color: var(--accent-tertiary); color: var(--text);">
+            2. LIVING & ISLAND
+          </button>
+          <button class="tactile-btn py-1.5 px-2 text-[11px] lcars-pill-left text-left border" 
+                  data-view="tatami" style="background: rgba(0,180,216,0.15); border-color: var(--accent-cyan); color: var(--text);">
+            3. 1F TATAMI ROOM
+          </button>
+          <button class="tactile-btn py-1.5 px-2 text-[11px] lcars-pill-right text-left border" 
+                  data-view="nook" style="background: rgba(204,153,204,0.15); border-color: var(--accent-secondary); color: var(--text);">
+            4. MIDDLE SANITARY NOOK
+          </button>
+          <button class="tactile-btn py-1.5 px-2 text-[11px] lcars-pill-left text-left border" 
+                  data-view="loft" style="background: rgba(204,153,204,0.15); border-color: var(--accent-secondary); color: var(--text);">
+            5. 2F BED & VOID
+          </button>
+          <button class="tactile-btn py-1.5 px-2 text-[11px] lcars-pill-right text-left border" 
+                  data-view="entrance" style="background: rgba(255,153,0,0.15); border-color: var(--accent-primary); color: var(--text);">
+            6. EAST GENKAN
+          </button>
+        </div>
+
+        <!-- Explode Model Disassembly Slider -->
+        <div class="p-2 rounded bg-black/25 border flex flex-col gap-1.5 mt-1" style="border-color: var(--accent-alert);">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold tracking-wider" style="color: var(--accent-alert)">
+              💥 EXPLODED DISASSEMBLY
+            </span>
+            <span class="text-[10px] font-mono-code font-bold explode-readout" style="color: var(--accent-alert)">0% (ASSEMBLED)</span>
+          </div>
+          <input id="slider-explode" type="range" min="0" max="1" step="0.01" value="0"
+                 class="w-full accent-orange-500 cursor-pointer h-2 bg-gray-700 rounded-lg">
+        </div>
+
+        <!-- Section Cutaway Modes -->
+        <div class="flex items-center justify-between border-b pb-1 pt-1" style="border-color: var(--muted)">
+          <span class="text-xs font-bold tracking-wider" style="color: var(--accent-primary)">
+            SYS.02 // CUTAWAY MODES
+          </span>
+          <span class="text-[10px] font-mono-code active-cutaway-label">FULL BLDG</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1">
+          <button class="tactile-btn py-1 text-[10px] lcars-pill border btn-cutaway" data-cut="full"
+                  style="background: var(--accent-primary); color: var(--accent-contrast); border-color: var(--accent-primary);">
+            FULL ENVELOPE
+          </button>
+          <button class="tactile-btn py-1 text-[10px] lcars-pill border btn-cutaway" data-cut="roof-off"
+                  style="background: transparent; color: var(--text); border-color: var(--muted);">
+            ROOF OFF (2F)
+          </button>
+          <button class="tactile-btn py-1 text-[10px] lcars-pill border btn-cutaway" data-cut="ground-only"
+                  style="background: transparent; color: var(--text); border-color: var(--muted);">
+            1F PLAN ONLY
+          </button>
+        </div>
+
+        <!-- Exterior Finishes -->
+        <div class="flex items-center justify-between border-b pb-1 pt-1" style="border-color: var(--muted)">
+          <span class="text-xs font-bold tracking-wider" style="color: var(--accent-primary)">
+            SYS.03 // EXTERIOR FINISH
+          </span>
+          <span class="text-[10px] font-mono-code active-cladding-label">CEDAR</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1">
+          <button class="tactile-btn py-1 text-[10px] lcars-pill border btn-cladding" data-cladding="cedar"
+                  style="background: var(--accent-primary); color: var(--accent-contrast); border-color: var(--accent-primary);">
+            NATURAL CEDAR
+          </button>
+          <button class="tactile-btn py-1 text-[10px] lcars-pill border btn-cladding" data-cladding="white"
+                  style="background: transparent; color: var(--text); border-color: var(--muted);">
+            WHITE METAL
+          </button>
+          <button class="tactile-btn py-1 text-[10px] lcars-pill border btn-cladding" data-cladding="charcoal"
+                  style="background: transparent; color: var(--text); border-color: var(--muted);">
+            YAKISUGI BLACK
+          </button>
+        </div>
+
+        <!-- Glazing & Features -->
+        <div class="flex items-center justify-between border-b pb-1 pt-1" style="border-color: var(--muted)">
+          <span class="text-xs font-bold tracking-wider" style="color: var(--accent-primary)">
+            SYS.04 // GLAZING & SASH
+          </span>
+        </div>
+        <div class="flex gap-1.5">
+          <button class="tactile-btn flex-1 py-1 text-[10px] lcars-pill border btn-glaze-glass"
+                  style="background: var(--accent-tertiary); color: #FFFFFF; border-color: var(--accent-tertiary);">
+            MODERN GLASS
+          </button>
+          <button class="tactile-btn flex-1 py-1 text-[10px] lcars-pill border btn-glaze-shoji"
+                  style="background: transparent; color: var(--text); border-color: var(--muted);">
+            WASHI SHOJI
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-xs font-bold">1F WASHITSU TATAMI</span>
+          <button class="tactile-btn h-6 px-2.5 text-[10px] lcars-pill font-bold border btn-toggle-tatami"
+                  style="background: var(--accent-primary); color: var(--accent-contrast); border-color: var(--accent-primary);">
+            INSTALLED
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between pt-0.5">
+          <span class="text-xs font-bold">3D ANNOTATION PINS</span>
+          <button class="tactile-btn h-6 px-2.5 text-[10px] lcars-pill font-bold border btn-toggle-hotspots"
+                  style="background: var(--accent-secondary); color: var(--accent-contrast); border-color: var(--accent-secondary);">
+            VISIBLE
+          </button>
+        </div>
+      </aside>
+
+      <!-- RIGHT CONSOLE: Metrics, Budget Estimator, & Notes -->
+      <aside id="panel-right" class="drawer-panel pointer-events-auto w-72 md:w-84 max-h-[76vh] overflow-y-auto deck-surface p-3 flex flex-col gap-2 rounded shadow-2xl border z-30"
+             style="border-color: var(--muted); background-color: var(--panel-bg);">
+        
+        <div class="flex items-center justify-between border-b pb-1" style="border-color: var(--muted)">
+          <span class="text-xs font-bold tracking-wider" style="color: var(--accent-secondary)">
+            SPEC.09 // ARCHITECTURAL METRICS
+          </span>
+          <div class="flex items-center gap-1">
+            <button id="btn-unit-toggle" class="tactile-btn h-5 px-2 text-[9px] lcars-pill border font-mono-code"
+                    style="border-color: var(--accent-tertiary); color: var(--text)">
+              <span id="unit-label-text">METRIC [M]</span>
+            </button>
+            <button class="md:hidden text-xs px-2 py-0.5 rounded border btn-close-right-drawer" style="border-color: var(--muted); color: var(--text)">✕</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono-code p-2 bg-black/20 rounded border" style="border-color: rgba(255,255,255,0.1)">
+          <div>
+            <span class="text-[10px] block opacity-70">FOOTPRINT AREA</span>
+            <span class="font-bold text-xs spec-footprint-val">9.0 TSUBO / 29.8 M²</span>
+          </div>
+          <div>
+            <span class="text-[10px] block opacity-70">TOTAL USABLE AREA</span>
+            <span class="font-bold text-xs spec-total-val">15.2 TSUBO / 50.3 M²</span>
+          </div>
+          <div>
+            <span class="text-[10px] block opacity-70">GRID DIMENSIONS</span>
+            <span class="font-bold text-xs spec-grid-val">3 × 3 KEN (5.46M × 5.46M)</span>
+          </div>
+          <div>
+            <span class="text-[10px] block opacity-70">RIDGE HEIGHT</span>
+            <span class="font-bold text-xs spec-height-val">4.82 M (DOUBLE HEIGHT)</span>
+          </div>
+        </div>
+
+        <div class="p-2 rounded border flex flex-col gap-1" style="border-color: var(--accent-primary); background: rgba(255,153,0,0.06);">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold tracking-wide inspect-title" style="color: var(--accent-primary)">
+              MIDDLE SANITARY NOOK
+            </span>
+            <span class="text-[9px] font-mono-code px-1.5 py-0.5 rounded" style="background: var(--accent-primary); color: var(--accent-contrast)">
+              PLAN 1F DETAIL
+            </span>
+          </div>
+          <p class="text-[11px] leading-relaxed opacity-90 inspect-desc">
+            Recessed vanity washbasin station between the sanitary core (Shower/WC) and the Tatami room, featuring custom louvered service cabinetry (photos 32107, 32102).
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between border-b pb-1 pt-1" style="border-color: var(--muted)">
+          <span class="text-xs font-bold tracking-wider" style="color: var(--accent-secondary)">
+            BUILD ESTIMATION // TARGET BUDGET
+          </span>
+          <span class="text-[10px] font-mono-code">PREFAB MODULAR</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded bg-black/20 border" style="border-color: rgba(255,255,255,0.1)">
+          <div>
+            <span class="text-[10px] block opacity-70">ESTIMATED TURNKEY COST</span>
+            <span class="font-bold text-base font-mono-code calc-price-yen" style="color: var(--accent-primary)">¥18,450,000</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] block opacity-70">EST. USD EQUIVALENT</span>
+            <span class="font-mono-code text-xs opacity-90 calc-price-usd">$122,800 USD</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between border-b pb-1 pt-1" style="border-color: var(--muted)">
+          <span class="text-xs font-bold tracking-wider" style="color: var(--accent-primary)">
+            CLIENT SCRATCHPAD & DESIRED CHANGES
+          </span>
+          <button class="text-[10px] underline hover:opacity-100 opacity-70 btn-save-indicator">AUTO-SAVED</button>
+        </div>
+        <textarea rows="3" placeholder="Input client modifications, wood stain choices, kitchen island counter adjustments..."
+                  class="client-scratchpad-input w-full text-xs p-2 rounded font-mono-code bg-black/40 border focus:outline-none resize-none"
+                  style="border-color: var(--muted); color: var(--text);"></textarea>
+
+        <button class="tactile-btn py-1.5 text-xs uppercase lcars-pill font-bold border btn-trigger-export"
+                style="background: var(--accent-primary); color: var(--accent-contrast); border-color: var(--accent-primary);">
+          EXPORT CLIENT SPECIFICATION (.TXT)
+        </button>
+      </aside>
+    </div>
+
+    <!-- BOTTOM FOOTER & RESPONSIVE FLOATING QUICK-DOCK -->
+    <footer class="pointer-events-auto w-full flex flex-col md:flex-row items-center justify-between gap-1.5 md:gap-2 p-2 deck-surface rounded border"
+            style="border-color: var(--muted); background-color: var(--panel-bg);">
+      
+      <!-- Mobile Quick Toggle Dock (Visible on Mobile & Tablet) -->
+      <div class="flex md:hidden w-full items-center justify-between gap-1">
+        <button id="btn-toggle-left-drawer" class="tactile-btn flex-1 h-8 px-1 text-[11px] lcars-pill border font-bold"
+                style="background: rgba(255,153,0,0.18); border-color: var(--accent-primary); color: var(--text);">
+          🎨 CONTROLS
+        </button>
+
+        <button id="btn-quick-explode" class="tactile-btn flex-1 h-8 px-1 text-[11px] lcars-pill border font-bold"
+                style="background: rgba(255, 85, 0, 0.22); border-color: var(--accent-alert); color: var(--text);">
+          💥 <span id="quick-explode-label">EXPLODE</span>
+        </button>
+
+        <button id="btn-toggle-right-drawer" class="tactile-btn flex-1 h-8 px-1 text-[11px] lcars-pill border font-bold"
+                style="background: rgba(204, 153, 204, 0.18); border-color: var(--accent-secondary); color: var(--text);">
+          📊 SPECS
+        </button>
+      </div>
+
+      <!-- Desktop & Mobile Sliders -->
+      <div class="w-full md:w-1/2 flex items-center gap-2">
+        <span class="text-xs font-bold whitespace-nowrap" style="color: var(--accent-primary)">
+          ☀️ SOLAR STUDY: <span class="sun-time-display font-mono-code">14:00 (MIDDAY)</span>
+        </span>
+        <input type="range" min="6" max="22" step="0.25" value="14" 
+               class="slider-sun-input w-full accent-amber-500 cursor-pointer h-2 bg-gray-700 rounded-lg">
+      </div>
+
+      <div class="w-full md:w-1/3 flex items-center gap-2">
+        <span class="text-xs font-bold whitespace-nowrap" style="color: var(--accent-cyan)">
+          🚪 SLIDING SASH: <span class="door-state-display font-mono-code">CLOSED</span>
+        </span>
+        <input type="range" min="0" max="1" step="0.01" value="0" 
+               class="slider-doors-input w-full accent-teal-400 cursor-pointer h-2 bg-gray-700 rounded-lg">
+      </div>
+
+      <div class="hidden xl:flex text-[10px] font-mono-code opacity-75 whitespace-nowrap">
+        DRAG: ORBIT | RIGHT CLICK: PAN | WHEEL: ZOOM | [T] STYLE | [S] SFX
+      </div>
+    </footer>
+  </div>
+
+  <!-- FLOATING ZEN RESTORE BUTTON -->
+  <button id="btn-zen-restore" class="hidden fixed bottom-4 right-4 z-50 pointer-events-auto tactile-btn h-10 w-10 text-base rounded-full shadow-2xl border"
+          style="background: var(--accent-primary); color: var(--accent-contrast); border-color: var(--accent-primary);">
+    👁️
+  </button>
+
+  <!-- 2D Architectural CAD Blueprint Modal Overlay -->
+  <div id="blueprint-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm pointer-events-auto">
+    <div class="deck-surface max-w-4xl w-full max-h-[90vh] overflow-y-auto p-4 rounded border flex flex-col gap-3"
+         style="border-color: var(--accent-cyan); background-color: var(--panel-bg);">
+      <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--muted)">
+        <div>
+          <h2 class="text-sm font-bold tracking-wider" style="color: var(--accent-cyan)">
+            ARCHITECTURAL BLUEPRINT // 1F & 2F SCHEMATICS
+          </h2>
+          <span class="text-[11px] font-mono-code opacity-75">
+            MAKOTO MASUZAWA 1952 (9 TSUBO / 3×3 KEN GRID = 5.46M × 5.46M)
+          </span>
+        </div>
+        <button id="btn-close-blueprint" class="tactile-btn h-8 px-4 text-xs lcars-pill border font-bold"
+                style="background: var(--accent-alert); color: #FFF; border-color: var(--accent-alert);">
+          ✕ CLOSE
+        </button>
+      </div>
+
+      <!-- Schematic Grid Display -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono-code">
+        <!-- 1F Plan Diagram -->
+        <div class="p-3 border rounded flex flex-col gap-2 bg-black/30" style="border-color: var(--muted)">
+          <div class="flex items-center justify-between border-b pb-1 font-bold">
+            <span style="color: var(--accent-primary)">1F GROUND FLOOR PLAN</span>
+            <span class="opacity-75">29.8 M² (9.0 TSUBO)</span>
+          </div>
+          <div class="space-y-1.5 text-[11px] leading-relaxed">
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-primary)">SOUTH:</strong> Double-Height Living Room with full-width sliding glazing opening to raised Engawa cedar deck.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-secondary)">WEST:</strong> Galley Kitchen Counter + Freestanding Kitchen Island with stainless basin and privacy backsplash.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-tertiary)">NORTH-WEST:</strong> Enclosed Sanitary Core (W.C. & Shower Room) with private doors.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-cyan)">MIDDLE NOOK:</strong> Vanity washbasin station and hallway between sanitary core and Tatami room.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-primary)">NORTH-EAST:</strong> Washitsu Tatami Room with low ground slit window (Jimidou) and built-in closet.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-alert)">EAST:</strong> Recessed Genkan Entrance with exterior visor canopy + open-riser stair ascending North.
+            </div>
+          </div>
+        </div>
+
+        <!-- 2F Plan Diagram -->
+        <div class="p-3 border rounded flex flex-col gap-2 bg-black/30" style="border-color: var(--muted)">
+          <div class="flex items-center justify-between border-b pb-1 font-bold">
+            <span style="color: var(--accent-secondary)">2F MEZZANINE PLAN</span>
+            <span class="opacity-75">20.5 M² (6.2 TSUBO)</span>
+          </div>
+          <div class="space-y-1.5 text-[11px] leading-relaxed">
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-secondary)">SOUTH VOID:</strong> 2-Story lightwell void above the Living Room bordered by anchored steel tubular railing.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-primary)">NORTH / BED:</strong> Open Mezzanine Bed Room platform with integrated eaves ventilation sash.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-tertiary)">WEST WALL:</strong> Continuous full-depth storage wardrobe ("Stock") spanning the entire 5.46m length.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-cyan)">EAST BALCONY & DESK:</strong> Built-in study desk with double seating along the stair landing railing.
+            </div>
+            <div class="p-1.5 rounded bg-white/5 border border-white/10">
+              <strong style="color: var(--accent-alert)">STRUCTURE:</strong> 4 continuous Cedar Maruta columns supporting the roof ridge purlin.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROCEDURAL WEB AUDIO SYNTHESIZER SCRIPT -->
+  <script>
+    class ProceduralAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      lcarsChirp(type = 'standard') {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc1 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc1.type = 'sine';
+          if (type === 'affirm') {
+            osc1.frequency.setValueAtTime(1760, now);
+            osc1.frequency.exponentialRampToValueAtTime(2349, now + 0.04);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          } else if (type === 'warp') {
+            osc1.frequency.setValueAtTime(659, now);
+            osc1.frequency.exponentialRampToValueAtTime(1318, now + 0.06);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          } else {
+            osc1.frequency.setValueAtTime(1200, now);
+            osc1.frequency.exponentialRampToValueAtTime(1920, now + 0.035);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          }
+
+          osc1.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.12);
+        } catch(e) {}
+      }
+
+      einkClick() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 0.02);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.03);
+        } catch(e) {}
+      }
+
+      play(isLcars, type = 'standard') {
+        if (isLcars) this.lcarsChirp(type);
+        else this.einkClick();
+      }
+    }
+
+    const audio = new ProceduralAudio();
+  </script>
+
+  <!-- THREE.JS ARCHITECTURAL 3D ENGINE -->
+  <script>
+    let scene, camera, renderer;
+    let houseGroup, roofGroup, loftGroup, tatamiGroup, middleNookGroup, sanitaryGroup, slidingDoorsGroup;
+    let groundGroup, columnsGroup;
+    let wallsSouthGroup, wallsNorthGroup, wallsWestGroup, wallsEastGroup;
+    let sunLight, ambientLight, interiorLight1, interiorLight2, shojiGlowLight;
+    
+    let isShojiActive = false;
+    let currentCladding = 'cedar';
+    let isTatamiActive = true;
+    let activeCutaway = 'full';
+    let doorOpenAmount = 0.0;
+    let explodeProgress = 0.0;
+    let hotspotsVisible = true;
+
+    // Architectural Dimensions: 3 Ken x 3 Ken (5.46m x 5.46m)
+    const W = 5.46; // X Axis (West - to East +)
+    const D = 5.46; // Z Axis (North - to South +)
+    const H = 4.82; // Total Ridge Height (Y)
+    const WALL_THICK = 0.14;
+    const LOFT_Y = 2.25; // Mezzanine floor beam top level
+
+    // Camera animation state
+    let targetCameraPos = new THREE.Vector3(7.5, 4.0, 9.0);
+    let targetLookAt = new THREE.Vector3(0, 1.8, 0);
+    let currentLookAt = new THREE.Vector3(0, 1.8, 0);
+
+    // Orbit controls state
+    let isDragging = false;
+    let isPanning = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let cameraSpherical = { radius: 12.0, theta: 0.8, phi: 1.1 };
+    let cameraCenter = new THREE.Vector3(0, 1.8, 0);
+
+    // Hotspots data
+    const HOTSPOTS = [
+      {
+        id: 'columns',
+        pos: new THREE.Vector3(0.91, 2.2, 0.91),
+        title: 'CEDAR MARUTA COLUMNS',
+        badge: 'STRUCTURAL CORE',
+        desc: 'Continuous solid round cedar timber posts running through both levels, positioned on the 3x3 ken modular grid lines to bear both roof and loft gravity loads.'
+      },
+      {
+        id: 'nook',
+        pos: new THREE.Vector3(-0.4, 1.1, -1.82),
+        title: 'MIDDLE SANITARY NOOK',
+        badge: '1F TRANSITION',
+        desc: 'Recessed vanity washbasin station between the sanitary core (Shower/WC) and the Tatami room, featuring custom louvered service cabinetry (photos 32107, 32102).'
+      },
+      {
+        id: 'tatami',
+        pos: new THREE.Vector3(1.35, 0.65, -1.35),
+        title: 'WASHITSU TATAMI ROOM',
+        badge: '1F NORTH-EAST',
+        desc: 'Traditional Japanese room raised 15cm on a cedar kerb with rush mats, built-in closet storage, and low ground slit window (Jimidou) delivering soft floor illumination.'
+      },
+      {
+        id: 'island',
+        pos: new THREE.Vector3(-0.9, 1.0, 0.4),
+        title: 'KITCHEN ISLAND & PREP BAR',
+        badge: '1F WEST ZONE',
+        desc: 'Modernist freestanding counter with stainless basin and elevated privacy backsplash, positioned parallel to the west galley counter (photo 32102).'
+      },
+      {
+        id: 'void',
+        pos: new THREE.Vector3(0.5, 2.3, 1.2),
+        title: 'DOUBLE-HEIGHT LIVING VOID',
+        badge: '2F MEZZANINE EDGE',
+        desc: 'Airy atrium lightwell overlooking the living room, bounded by minimalist white tubular steel balustrade anchored into the mezzanine beam.'
+      },
+      {
+        id: 'stock',
+        pos: new THREE.Vector3(-2.4, 3.1, 0.0),
+        title: 'WEST CONTINUOUS STORAGE ("STOCK")',
+        badge: '2F FULL WALL',
+        desc: 'Continuous built-in wardrobe cabinetry running the entire 5.46m length of the West elevation (as specified in plan 2F and photo 32106).'
+      }
+    ];
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0c10);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      updateCameraFromSpherical();
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      container.appendChild(renderer.domElement);
+
+      setupLighting();
+      buildEnvironment();
+      buildHouseArchitecture();
+      setupInteractionListeners();
+      setupHotspotsDOM();
+
+      window.addEventListener('resize', onWindowResize, false);
+      animate();
+    }
+
+    function setupLighting() {
+      ambientLight = new THREE.HemisphereLight(0xfff6ea, 0x182030, 0.65);
+      scene.add(ambientLight);
+
+      sunLight = new THREE.DirectionalLight(0xfffaf0, 1.4);
+      sunLight.position.set(12, 18, 14);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 0.5;
+      sunLight.shadow.camera.far = 40;
+      const d = 8;
+      sunLight.shadow.camera.left = -d;
+      sunLight.shadow.camera.right = d;
+      sunLight.shadow.camera.top = d;
+      sunLight.shadow.camera.bottom = -d;
+      sunLight.shadow.bias = -0.0005;
+      scene.add(sunLight);
+
+      interiorLight1 = new THREE.PointLight(0xffbe76, 1.0, 7.5);
+      interiorLight1.position.set(-0.8, 2.0, -0.6);
+      scene.add(interiorLight1);
+
+      interiorLight2 = new THREE.PointLight(0xffd194, 0.9, 8.0);
+      interiorLight2.position.set(0.6, 3.8, 0.5);
+      scene.add(interiorLight2);
+
+      shojiGlowLight = new THREE.PointLight(0xff9900, 0.4, 6.0);
+      shojiGlowLight.position.set(0.9, 1.4, 2.0);
+      scene.add(shojiGlowLight);
+    }
+
+    function buildEnvironment() {
+      groundGroup = new THREE.Group();
+
+      const gravelGeo = new THREE.PlaneGeometry(36, 36);
+      const gravelMat = new THREE.MeshStandardMaterial({ color: 0x989288, roughness: 0.95 });
+      const gravel = new THREE.Mesh(gravelGeo, gravelMat);
+      gravel.rotation.x = -Math.PI / 2;
+      gravel.position.y = -0.02;
+      gravel.receiveShadow = true;
+      groundGroup.add(gravel);
+
+      for (let i = 0; i < 5; i++) {
+        const stoneGeo = new THREE.BoxGeometry(0.7, 0.04, 0.5);
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x5e5b57, roughness: 0.8 });
+        const stone = new THREE.Mesh(stoneGeo, stoneMat);
+        stone.position.set(2.8 + i * 0.75, 0.01, 0.9);
+        stone.receiveShadow = true;
+        groundGroup.add(stone);
+      }
+
+      const plinthGeo = new THREE.BoxGeometry(W + 0.1, 0.35, D + 0.1);
+      const plinthMat = new THREE.MeshStandardMaterial({ color: 0x48494b, roughness: 0.85 });
+      const plinth = new THREE.Mesh(plinthGeo, plinthMat);
+      plinth.position.set(0, 0.175, 0);
+      plinth.receiveShadow = true;
+      plinth.castShadow = true;
+      groundGroup.add(plinth);
+
+      scene.add(groundGroup);
+    }
+
+    function buildHouseArchitecture() {
+      houseGroup = new THREE.Group();
+      roofGroup = new THREE.Group();
+      loftGroup = new THREE.Group();
+      tatamiGroup = new THREE.Group();
+      middleNookGroup = new THREE.Group();
+      sanitaryGroup = new THREE.Group();
+      columnsGroup = new THREE.Group();
+      slidingDoorsGroup = new THREE.Group();
+
+      wallsSouthGroup = new THREE.Group();
+      wallsNorthGroup = new THREE.Group();
+      wallsWestGroup = new THREE.Group();
+      wallsEastGroup = new THREE.Group();
+
+      const materials = getMaterials();
+
+      // 1. Ground Floor Plate (Y: 0.35 - 0.43)
+      const floorGeo = new THREE.BoxGeometry(W - 0.16, 0.08, D - 0.16);
+      const groundFloorMesh = new THREE.Mesh(floorGeo, materials.interiorWood);
+      groundFloorMesh.position.set(0, 0.39, 0);
+      groundFloorMesh.receiveShadow = true;
+      houseGroup.add(groundFloorMesh);
+
+      // 2. 4 Solid Cedar Maruta Round Columns (3x3 Ken Grid Intersections)
+      const colRadius = 0.09;
+      const colPositions = [
+        new THREE.Vector3(-0.91, H/2 + 0.25, -0.91), // Between kitchen & middle nook
+        new THREE.Vector3(0.91, H/2 + 0.25, -0.91),  // Corner of Tatami room & Living room
+        new THREE.Vector3(-0.91, H/2 + 0.25, 0.91),  // Next to Kitchen Island & South Window
+        new THREE.Vector3(0.91, H/2 + 0.25, 0.91)   // Between Living room & East Stair
+      ];
+
+      colPositions.forEach(pos => {
+        const colGeo = new THREE.CylinderGeometry(colRadius, colRadius * 1.05, H - 0.3, 24);
+        const colMesh = new THREE.Mesh(colGeo, materials.cedarPost);
+        colMesh.position.copy(pos);
+        colMesh.castShadow = true;
+        colMesh.receiveShadow = true;
+        columnsGroup.add(colMesh);
+      });
+      houseGroup.add(columnsGroup);
+
+      // Structural timber beams supporting mezzanine
+      const girderGeoX = new THREE.BoxGeometry(W - 0.16, 0.16, 0.14);
+      const girder1 = new THREE.Mesh(girderGeoX, materials.timberBeam);
+      girder1.position.set(0, LOFT_Y - 0.08, -0.91);
+      girder1.castShadow = true;
+      houseGroup.add(girder1);
+
+      const girder2 = new THREE.Mesh(girderGeoX, materials.timberBeam);
+      girder2.position.set(0, LOFT_Y - 0.08, 0.91);
+      girder2.castShadow = true;
+      houseGroup.add(girder2);
+
+      // Build architectural component groups
+      buildExteriorWalls(materials);
+      buildQuadrantFacade(materials);
+      buildEngawaDeck(materials);
+      buildMiddleNookAndSanitary(materials);
+      buildTatamiWashitsu(materials);
+      buildKitchenAndLiving(materials);
+      buildLoftMezzanine(materials);
+      buildRoofStructure(materials);
+
+      houseGroup.add(wallsSouthGroup);
+      houseGroup.add(wallsNorthGroup);
+      houseGroup.add(wallsWestGroup);
+      houseGroup.add(wallsEastGroup);
+
+      scene.add(houseGroup);
+      scene.add(roofGroup);
+    }
+
+    function buildExteriorWalls(materials) {
+      // WEST WALL GROUP
+      const westWallGeo = new THREE.BoxGeometry(WALL_THICK, 4.15, D);
+      const westWall = new THREE.Mesh(westWallGeo, materials.cladding);
+      westWall.position.set(-W/2 + WALL_THICK/2, 2.42, 0);
+      westWall.castShadow = true;
+      westWall.receiveShadow = true;
+      wallsWestGroup.add(westWall);
+
+      const kWindowGeo = new THREE.BoxGeometry(WALL_THICK + 0.04, 0.35, 1.2);
+      const kWindow = new THREE.Mesh(kWindowGeo, materials.glazing);
+      kWindow.position.set(-W/2 + WALL_THICK/2, 1.3, -1.0);
+      wallsWestGroup.add(kWindow);
+
+      // NORTH WALL GROUP
+      const northWallGeo = new THREE.BoxGeometry(W, 4.15, WALL_THICK);
+      const northWall = new THREE.Mesh(northWallGeo, materials.cladding);
+      northWall.position.set(0, 2.42, -D/2 + WALL_THICK/2);
+      northWall.castShadow = true;
+      northWall.receiveShadow = true;
+      wallsNorthGroup.add(northWall);
+
+      const bWindowGeo = new THREE.BoxGeometry(0.8, 0.3, WALL_THICK + 0.04);
+      const bWindow = new THREE.Mesh(bWindowGeo, materials.glazing);
+      bWindow.position.set(-1.8, 1.9, -D/2 + WALL_THICK/2);
+      wallsNorthGroup.add(bWindow);
+
+      // EAST WALL GROUP (Genkan Entry Door & Canopy)
+      const eastWallGeo = new THREE.BoxGeometry(WALL_THICK, 4.15, D);
+      const eastWall = new THREE.Mesh(eastWallGeo, materials.cladding);
+      eastWall.position.set(W/2 - WALL_THICK/2, 2.42, 0);
+      eastWall.castShadow = true;
+      eastWall.receiveShadow = true;
+      wallsEastGroup.add(eastWall);
+
+      const genkanDoorGeo = new THREE.BoxGeometry(WALL_THICK + 0.02, 2.05, 0.95);
+      const genkanDoor = new THREE.Mesh(genkanDoorGeo, materials.entryDoor);
+      genkanDoor.position.set(W/2 - WALL_THICK/2, 1.38, 0.9);
+      wallsEastGroup.add(genkanDoor);
+
+      const eCanopyGeo = new THREE.BoxGeometry(0.9, 0.03, 1.3);
+      const eCanopy = new THREE.Mesh(eCanopyGeo, materials.steelTrim);
+      eCanopy.position.set(W/2 + 0.45, 2.46, 0.9);
+      eCanopy.castShadow = true;
+      wallsEastGroup.add(eCanopy);
+
+      const eRod = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.65, 8), materials.steelTrim);
+      eRod.position.set(W/2 + 0.25, 2.65, 0.9);
+      eRod.rotation.z = Math.PI / 4;
+      wallsEastGroup.add(eRod);
+
+      // SOUTH WALL GROUP (Solid 1/3 + Quadrant window frame)
+      const southSolidW = 1.82;
+      const southSolidGeo = new THREE.BoxGeometry(southSolidW, 4.15, WALL_THICK);
+      const southSolid = new THREE.Mesh(southSolidGeo, materials.cladding);
+      southSolid.position.set(-W/2 + southSolidW/2, 2.42, D/2 - WALL_THICK/2);
+      southSolid.castShadow = true;
+      wallsSouthGroup.add(southSolid);
+    }
+
+    function buildQuadrantFacade(materials) {
+      const quadW = 3.64;
+      const quadH = 4.15;
+      const quadCenterX = (W/2) - (quadW/2);
+      const quadCenterZ = D/2 - WALL_THICK/2;
+      const frameMat = materials.woodFrame;
+      const frameThick = 0.08;
+
+      const topFrame = new THREE.Mesh(new THREE.BoxGeometry(quadW, frameThick, 0.14), frameMat);
+      topFrame.position.set(quadCenterX, quadH + 0.35 - frameThick/2, quadCenterZ);
+      wallsSouthGroup.add(topFrame);
+
+      const botFrame = new THREE.Mesh(new THREE.BoxGeometry(quadW, frameThick, 0.14), frameMat);
+      botFrame.position.set(quadCenterX, 0.35 + frameThick/2, quadCenterZ);
+      wallsSouthGroup.add(botFrame);
+
+      const midHBeam = new THREE.Mesh(new THREE.BoxGeometry(quadW, frameThick * 1.2, 0.14), frameMat);
+      midHBeam.position.set(quadCenterX, LOFT_Y + 0.05, quadCenterZ);
+      wallsSouthGroup.add(midHBeam);
+
+      const midVPost = new THREE.Mesh(new THREE.BoxGeometry(frameThick * 1.2, quadH, 0.14), frameMat);
+      midVPost.position.set(quadCenterX, 2.42, quadCenterZ);
+      wallsSouthGroup.add(midVPost);
+
+      const upperW = quadW/2 - 0.05;
+      const upperH = (quadH - LOFT_Y) + 0.05;
+      const upperGeo = new THREE.PlaneGeometry(upperW, upperH);
+
+      const upperLeftGlass = new THREE.Mesh(upperGeo, materials.glazing);
+      upperLeftGlass.position.set(quadCenterX - quadW/4, 3.48, quadCenterZ);
+      wallsSouthGroup.add(upperLeftGlass);
+
+      const upperRightGlass = new THREE.Mesh(upperGeo, materials.glazing);
+      upperRightGlass.position.set(quadCenterX + quadW/4, 3.48, quadCenterZ);
+      wallsSouthGroup.add(upperRightGlass);
+
+      const doorW = quadW/2 - 0.04;
+      const doorH = LOFT_Y - 0.38;
+      const panelGeo = new THREE.BoxGeometry(doorW, doorH, 0.04);
+
+      const leftDoor = new THREE.Mesh(panelGeo, materials.glazing);
+      leftDoor.position.set(quadCenterX - quadW/4, 1.26, quadCenterZ - 0.02);
+      slidingDoorsGroup.add(leftDoor);
+
+      const rightDoor = new THREE.Mesh(panelGeo, materials.glazing);
+      rightDoor.position.set(quadCenterX + quadW/4, 1.26, quadCenterZ + 0.02);
+      slidingDoorsGroup.add(rightDoor);
+
+      slidingDoorsGroup.userData = { leftDoor, rightDoor, origX: quadCenterX - quadW/4 };
+      wallsSouthGroup.add(slidingDoorsGroup);
+    }
+
+    function buildEngawaDeck(materials) {
+      const deckW = 3.8;
+      const deckD = 1.4;
+      const deckH = 0.08;
+      const deckX = 0.9;
+      const deckZ = D/2 + deckD/2;
+
+      const deck = new THREE.Mesh(new THREE.BoxGeometry(deckW, deckH, deckD), materials.deckWood);
+      deck.position.set(deckX, 0.32, deckZ);
+      deck.receiveShadow = true;
+      deck.castShadow = true;
+      wallsSouthGroup.add(deck);
+
+      const footingGeo = new THREE.BoxGeometry(0.24, 0.28, 0.24);
+      const footingMat = new THREE.MeshStandardMaterial({ color: 0x5a5855, roughness: 0.9 });
+      for (let ix = -1; ix <= 1; ix++) {
+        for (let iz = -1; iz <= 1; iz++) {
+          const footing = new THREE.Mesh(footingGeo, footingMat);
+          footing.position.set(deckX + ix * 1.5, 0.14, deckZ + iz * 0.45);
+          footing.castShadow = true;
+          wallsSouthGroup.add(footing);
+        }
+      }
+    }
+
+    function buildMiddleNookAndSanitary(materials) {
+      // 1. Enclosed Sanitary Core (North-West Bay)
+      const sDivider = new THREE.Mesh(new THREE.BoxGeometry(1.82, 2.05, 0.08), materials.interiorCabinets);
+      sDivider.position.set(-W/2 + 0.91 + WALL_THICK, 1.42, -0.91);
+      sanitaryGroup.add(sDivider);
+
+      const sInternal = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.05, 1.82), materials.interiorCabinets);
+      sInternal.position.set(-W/2 + 0.91 + WALL_THICK, 1.42, -1.82);
+      sanitaryGroup.add(sInternal);
+
+      const wc = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.42, 0.55), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 }));
+      wc.position.set(-W/2 + 0.45 + WALL_THICK, 0.6, -1.4);
+      sanitaryGroup.add(wc);
+
+      const showerTray = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.06, 0.85), new THREE.MeshStandardMaterial({ color: 0xdedede, roughness: 0.3 }));
+      showerTray.position.set(-W/2 + 0.45 + WALL_THICK, 0.42, -2.25);
+      sanitaryGroup.add(showerTray);
+
+      // 2. Middle Nook (Between Sanitary Core & Tatami Room)
+      const vanityCounter = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.82, 0.55), materials.interiorCabinets);
+      vanityCounter.position.set(-0.45, 0.80, -2.25);
+      middleNookGroup.add(vanityCounter);
+
+      const vanitySink = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.16, 0.12, 16), materials.steelTrim);
+      vanitySink.position.set(-0.45, 1.22, -2.25);
+      middleNookGroup.add(vanitySink);
+
+      const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.85, 0.02), materials.steelTrim);
+      mirror.position.set(-0.45, 1.75, -D/2 + WALL_THICK + 0.01);
+      middleNookGroup.add(mirror);
+
+      // Louvered / Vertical Slit Cabinet Facing Hallway (Photo 32102)
+      const louverCab = new THREE.Mesh(new THREE.BoxGeometry(0.85, 2.05, 0.6), materials.interiorCabinets);
+      louverCab.position.set(-0.45, 1.42, -1.2);
+      middleNookGroup.add(louverCab);
+
+      for (let s = -0.15; s <= 0.15; s += 0.08) {
+        const slit = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.45, 0.61), materials.steelTrim);
+        slit.position.set(-0.45 + s, 1.4, -1.2);
+        middleNookGroup.add(slit);
+      }
+
+      houseGroup.add(sanitaryGroup);
+      houseGroup.add(middleNookGroup);
+    }
+
+    function buildTatamiWashitsu(materials) {
+      // 1F North-East Tatami Room (from 1F Plan: 6 Mats)
+      const tatamiW = 2.45;
+      const tatamiD = 2.45;
+      const posX = 1.35;
+      const posZ = -1.35;
+
+      const kerb = new THREE.Mesh(new THREE.BoxGeometry(tatamiW + 0.08, 0.14, tatamiD + 0.08), materials.cedarPost);
+      kerb.position.set(posX, 0.46, posZ);
+      tatamiGroup.add(kerb);
+
+      const matMesh = new THREE.Mesh(new THREE.BoxGeometry(tatamiW, 0.05, tatamiD), materials.tatamiMat);
+      matMesh.position.set(posX, 0.52, posZ);
+      matMesh.receiveShadow = true;
+      tatamiGroup.add(matMesh);
+
+      const closet = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.05, 1.25), materials.interiorCabinets);
+      closet.position.set(W/2 - 0.32 - WALL_THICK, 1.42, -1.8);
+      closet.castShadow = true;
+      tatamiGroup.add(closet);
+
+      const jimidou = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.32, 0.06), materials.washiShoji);
+      jimidou.position.set(posX, 0.62, -D/2 + WALL_THICK + 0.03);
+      tatamiGroup.add(jimidou);
+
+      const slatPanel = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.95, 1.2), materials.cedarPost);
+      slatPanel.position.set(0.12, 1.55, -1.35);
+      tatamiGroup.add(slatPanel);
+
+      const fusuma = new THREE.Mesh(new THREE.BoxGeometry(tatamiW, 2.05, 0.04), materials.washiShoji);
+      fusuma.position.set(posX, 1.42, -0.12);
+      tatamiGroup.add(fusuma);
+
+      houseGroup.add(tatamiGroup);
+    }
+
+    function buildKitchenAndLiving(materials) {
+      // West Galley Counter
+      const backCounter = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.86, 2.5), materials.interiorCabinets);
+      backCounter.position.set(-W/2 + 0.35 + WALL_THICK, 0.82, 0.8);
+      backCounter.castShadow = true;
+      houseGroup.add(backCounter);
+
+      const cooktop = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.02, 0.7), materials.steelTrim);
+      cooktop.position.set(-W/2 + 0.35 + WALL_THICK, 1.26, 1.4);
+      houseGroup.add(cooktop);
+
+      // Central Kitchen Island with Backsplash (Photo 32102)
+      const island = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.86, 1.8), materials.interiorCabinets);
+      island.position.set(-0.85, 0.82, 0.6);
+      island.castShadow = true;
+      houseGroup.add(island);
+
+      const barTop = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.05, 1.8), materials.interiorCabinets);
+      barTop.position.set(-0.5, 0.92, 0.6);
+      houseGroup.add(barTop);
+
+      const sink = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.02, 0.55), materials.steelTrim);
+      sink.position.set(-0.85, 1.26, 0.35);
+      houseGroup.add(sink);
+
+      const faucet = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.22, 12), materials.steelTrim);
+      faucet.position.set(-0.85, 1.38, 0.05);
+      houseGroup.add(faucet);
+
+      // East Genkan Entrance
+      const genkanStone = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 1.2), new THREE.MeshStandardMaterial({ color: 0x36383a, roughness: 0.85 }));
+      genkanStone.position.set(W/2 - 0.55 - WALL_THICK, 0.2, 0.9);
+      genkanStone.receiveShadow = true;
+      houseGroup.add(genkanStone);
+
+      const shoeCab = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.1, 0.8), materials.interiorCabinets);
+      shoeCab.position.set(W/2 - 0.28 - WALL_THICK, 0.94, 0.0);
+      houseGroup.add(shoeCab);
+
+      // Open-Riser Timber Staircase ascending North to 2F (Photos 32105, 32108)
+      const stairGroup = new THREE.Group();
+      const numSteps = 11;
+      const stepRise = (LOFT_Y - 0.35) / numSteps;
+      const stepRun = 1.95 / numSteps;
+
+      for (let i = 0; i < numSteps; i++) {
+        const step = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.04, 0.22), materials.interiorWood);
+        step.position.set(W/2 - 0.45 - WALL_THICK, 0.4 + (i + 1) * stepRise, 1.4 - i * stepRun);
+        step.castShadow = true;
+        stairGroup.add(step);
+      }
+
+      // Diagonal Handrail anchored with floor stanchion
+      const handrail = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 2.9, 12), materials.whiteRail);
+      handrail.position.set(W/2 - 0.85 - WALL_THICK, 1.62, 0.45);
+      handrail.rotation.x = 0.74;
+      stairGroup.add(handrail);
+
+      const railFloorPost = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.95, 12), materials.whiteRail);
+      railFloorPost.position.set(W/2 - 0.85 - WALL_THICK, 0.85, 1.45);
+      stairGroup.add(railFloorPost);
+
+      houseGroup.add(stairGroup);
+
+      // Living Room Dining Set
+      const diningTable = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.045, 0.85), materials.interiorWood);
+      diningTable.position.set(0.6, 0.74, 1.25);
+      diningTable.castShadow = true;
+      houseGroup.add(diningTable);
+
+      for (let tx = -0.5; tx <= 0.5; tx += 1.0) {
+        for (let tz = -0.34; tz <= 0.34; tz += 0.68) {
+          const tLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.7, 8), materials.interiorWood);
+          tLeg.position.set(0.6 + tx, 0.38, 1.25 + tz);
+          houseGroup.add(tLeg);
+        }
+      }
+    }
+
+    function buildLoftMezzanine(materials) {
+      // 2F Mezzanine Floor Plates
+      const rearLoft = new THREE.Mesh(new THREE.BoxGeometry(W - 0.2, 0.08, D/2), materials.interiorWood);
+      rearLoft.position.set(0, LOFT_Y + 0.04, -D/4);
+      rearLoft.receiveShadow = true;
+      loftGroup.add(rearLoft);
+
+      const westAisle = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.08, D/2), materials.interiorWood);
+      westAisle.position.set(-W/2 + 0.91 + 0.05, LOFT_Y + 0.04, D/4);
+      westAisle.receiveShadow = true;
+      loftGroup.add(westAisle);
+
+      // Continuous West Wall Storage ("Stock")
+      const stockMesh = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.8, D - 0.4), materials.interiorCabinets);
+      stockMesh.position.set(-W/2 + 0.35 + WALL_THICK, LOFT_Y + 0.95, 0);
+      stockMesh.castShadow = true;
+      loftGroup.add(stockMesh);
+
+      for (let z = -2.2; z <= 2.2; z += 0.8) {
+        const seam = new THREE.Mesh(new THREE.BoxGeometry(0.01, 1.75, 0.01), materials.steelTrim);
+        seam.position.set(-W/2 + 0.68 + WALL_THICK, LOFT_Y + 0.95, z);
+        loftGroup.add(seam);
+      }
+
+      // ANCHORED WHITE TUBULAR BALUSTRADE (Firmly rooted on floor beams)
+      const railH = 0.85;
+      const baseBeamY = LOFT_Y + 0.08;
+
+      // South Edge of Void
+      const southRailW = 3.64;
+      const southTopRail = new THREE.Mesh(new THREE.BoxGeometry(southRailW, 0.035, 0.035), materials.whiteRail);
+      southTopRail.position.set(0.91, baseBeamY + railH, 0.0);
+      loftGroup.add(southTopRail);
+
+      const southMidRail = new THREE.Mesh(new THREE.BoxGeometry(southRailW, 0.012, 0.012), materials.whiteRail);
+      southMidRail.position.set(0.91, baseBeamY + railH/2, 0.0);
+      loftGroup.add(southMidRail);
+
+      for (let x = -0.7; x <= 2.5; x += 0.8) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, railH, 12), materials.whiteRail);
+        post.position.set(x, baseBeamY + railH/2, 0.0);
+        loftGroup.add(post);
+      }
+
+      // West Edge of Void
+      const westTopRail = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, D/2), materials.whiteRail);
+      westTopRail.position.set(0.0, baseBeamY + railH, D/4);
+      loftGroup.add(westTopRail);
+
+      const westMidRail = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.012, D/2), materials.whiteRail);
+      westMidRail.position.set(0.0, baseBeamY + railH/2, D/4);
+      loftGroup.add(westMidRail);
+
+      for (let z = 0.4; z <= 2.4; z += 0.8) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, railH, 12), materials.whiteRail);
+        post.position.set(0.0, baseBeamY + railH/2, z);
+        loftGroup.add(post);
+      }
+
+      // Study Desk & Master Bed
+      const desk = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.04, 1.4), materials.interiorWood);
+      desk.position.set(W/2 - 0.35 - WALL_THICK, LOFT_Y + 0.78, -1.1);
+      loftGroup.add(desk);
+
+      for (let dz = -1.5; dz <= -0.7; dz += 0.8) {
+        const chair = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.44, 0.35), materials.interiorWood);
+        chair.position.set(W/2 - 0.75 - WALL_THICK, LOFT_Y + 0.28, dz);
+        loftGroup.add(chair);
+      }
+
+      const bedBase = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.28, 2.05), materials.interiorWood);
+      bedBase.position.set(-0.35, LOFT_Y + 0.20, -1.4);
+      bedBase.castShadow = true;
+      loftGroup.add(bedBase);
+
+      const duvet = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.14, 1.85), new THREE.MeshStandardMaterial({ color: 0xf5f3ee, roughness: 0.9 }));
+      duvet.position.set(-0.35, LOFT_Y + 0.38, -1.35);
+      loftGroup.add(duvet);
+
+      for (let px = -0.75; px <= 0.05; px += 0.75) {
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.08, 0.35), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }));
+        pillow.position.set(px, LOFT_Y + 0.48, -2.15);
+        loftGroup.add(pillow);
+      }
+
+      houseGroup.add(loftGroup);
+    }
+
+    function buildRoofStructure(materials) {
+      const roofPitch = 0.21;
+      const roofOverhangX = 0.35;
+      const roofOverhangZ = 0.45;
+      const roofW = W + roofOverhangX * 2;
+      const halfDepth = (D / 2) + roofOverhangZ;
+      const ridgeY = 4.78;
+
+      const ridgeBeam = new THREE.Mesh(new THREE.BoxGeometry(roofW, 0.12, 0.12), materials.timberBeam);
+      ridgeBeam.position.set(0, ridgeY - 0.08, 0);
+      roofGroup.add(ridgeBeam);
+
+      const panelLength = halfDepth / Math.cos(roofPitch);
+      const panelGeo = new THREE.BoxGeometry(roofW, 0.05, panelLength);
+
+      const southRoof = new THREE.Mesh(panelGeo, materials.roofMetal);
+      southRoof.position.set(0, ridgeY - Math.sin(roofPitch) * (panelLength / 2) + 0.025, halfDepth / 2);
+      southRoof.rotation.x = roofPitch;
+      southRoof.castShadow = true;
+      roofGroup.add(southRoof);
+
+      const northRoof = new THREE.Mesh(panelGeo, materials.roofMetal);
+      northRoof.position.set(0, ridgeY - Math.sin(roofPitch) * (panelLength / 2) + 0.025, -halfDepth / 2);
+      northRoof.rotation.x = -roofPitch;
+      northRoof.castShadow = true;
+      roofGroup.add(northRoof);
+
+      const rafterThickness = 0.06;
+      const rafterHeight = 0.10;
+      const rafterGeo = new THREE.BoxGeometry(rafterThickness, rafterHeight, panelLength - 0.06);
+
+      for (let rx = -2.55; rx <= 2.55; rx += 0.64) {
+        const rafterSouth = new THREE.Mesh(rafterGeo, materials.timberBeam);
+        rafterSouth.position.set(rx, ridgeY - Math.sin(roofPitch) * (panelLength / 2) - 0.055, halfDepth / 2);
+        rafterSouth.rotation.x = roofPitch;
+        roofGroup.add(rafterSouth);
+
+        const rafterNorth = new THREE.Mesh(rafterGeo, materials.timberBeam);
+        rafterNorth.position.set(rx, ridgeY - Math.sin(roofPitch) * (panelLength / 2) - 0.055, -halfDepth / 2);
+        rafterNorth.rotation.x = -roofPitch;
+        roofGroup.add(rafterNorth);
+      }
+
+      const ridgeCap = new THREE.Mesh(new THREE.BoxGeometry(roofW + 0.02, 0.04, 0.14), materials.roofMetal);
+      ridgeCap.position.set(0, ridgeY + 0.03, 0);
+      roofGroup.add(ridgeCap);
+
+      const southFascia = new THREE.Mesh(new THREE.BoxGeometry(roofW + 0.02, 0.14, 0.03), materials.timberBeam);
+      southFascia.position.set(0, ridgeY - Math.sin(roofPitch) * panelLength, halfDepth);
+      roofGroup.add(southFascia);
+
+      const northFascia = new THREE.Mesh(new THREE.BoxGeometry(roofW + 0.02, 0.14, 0.03), materials.timberBeam);
+      northFascia.position.set(0, ridgeY - Math.sin(roofPitch) * panelLength, -halfDepth);
+      roofGroup.add(northFascia);
+    }
+
+    function getMaterials() {
+      const cedarMat = new THREE.MeshStandardMaterial({
+        color: 0xc4966a,
+        roughness: 0.65,
+        metalness: 0.02
+      });
+
+      const whiteCladding = new THREE.MeshStandardMaterial({
+        color: 0xefefea,
+        roughness: 0.5,
+        metalness: 0.15
+      });
+
+      const charcoalCladding = new THREE.MeshStandardMaterial({
+        color: 0x1f2226,
+        roughness: 0.85,
+        metalness: 0.05
+      });
+
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: 0xc8e0ea,
+        transmission: 0.88,
+        opacity: 1.0,
+        transparent: true,
+        roughness: 0.05,
+        ior: 1.5,
+        thickness: 0.2,
+        reflectivity: 0.8
+      });
+
+      const shojiMat = new THREE.MeshStandardMaterial({
+        color: 0xfaf5ec,
+        roughness: 0.9,
+        metalness: 0.0,
+        emissive: 0xffbe76,
+        emissiveIntensity: 0.12
+      });
+
+      return {
+        cladding: currentCladding === 'white' ? whiteCladding : (currentCladding === 'charcoal' ? charcoalCladding : cedarMat),
+        cedarPost: new THREE.MeshStandardMaterial({ color: 0xd6a877, roughness: 0.6 }),
+        timberBeam: new THREE.MeshStandardMaterial({ color: 0xb58554, roughness: 0.7 }),
+        interiorWood: new THREE.MeshStandardMaterial({ color: 0xebd2ad, roughness: 0.55 }),
+        woodFrame: new THREE.MeshStandardMaterial({ color: 0xb88858, roughness: 0.6 }),
+        deckWood: new THREE.MeshStandardMaterial({ color: 0xa87c53, roughness: 0.75 }),
+        tatamiMat: new THREE.MeshStandardMaterial({ color: 0x8a9e70, roughness: 0.85 }),
+        entryDoor: new THREE.MeshStandardMaterial({ color: 0xd9cebe, roughness: 0.4 }),
+        interiorCabinets: new THREE.MeshStandardMaterial({ color: 0xf0ece2, roughness: 0.45 }),
+        whiteRail: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }),
+        steelTrim: new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.8, roughness: 0.2 }),
+        roofMetal: new THREE.MeshStandardMaterial({ color: 0x3a3c40, metalness: 0.4, roughness: 0.4 }),
+        glazing: isShojiActive ? shojiMat : glassMat,
+        washiShoji: shojiMat
+      };
+    }
+
+    const VIEW_PRESETS = {
+      facade: { pos: new THREE.Vector3(0.9, 2.2, 8.8), target: new THREE.Vector3(0.9, 2.0, 0) },
+      living: { pos: new THREE.Vector3(0.9, 1.4, 2.2), target: new THREE.Vector3(-0.9, 1.1, 0.5) },
+      tatami: { pos: new THREE.Vector3(0.3, 1.2, 0.5), target: new THREE.Vector3(1.35, 0.8, -1.35) },
+      nook: { pos: new THREE.Vector3(-0.4, 1.3, 0.2), target: new THREE.Vector3(-0.4, 1.1, -1.82) },
+      loft: { pos: new THREE.Vector3(0.2, 3.6, 0.6), target: new THREE.Vector3(-0.8, 3.0, -1.2) },
+      entrance: { pos: new THREE.Vector3(5.5, 1.6, 1.2), target: new THREE.Vector3(2.2, 1.3, 0.9) },
+      axonometric: { pos: new THREE.Vector3(9.5, 10.5, 11.5), target: new THREE.Vector3(0, 2.0, 0) }
+    };
+
+    function transitionToView(viewKey) {
+      const preset = VIEW_PRESETS[viewKey];
+      if (!preset) return;
+      targetCameraPos.copy(preset.pos);
+      targetLookAt.copy(preset.target);
+
+      const offset = new THREE.Vector3().subVectors(preset.pos, preset.target);
+      cameraSpherical.radius = offset.length();
+      cameraSpherical.theta = Math.atan2(offset.x, offset.z);
+      cameraSpherical.phi = Math.acos(THREE.MathUtils.clamp(offset.y / cameraSpherical.radius, -1, 1));
+      cameraCenter.copy(preset.target);
+    }
+
+    function applyExplode(amount) {
+      explodeProgress = amount;
+      
+      roofGroup.position.y = amount * 3.6;
+      loftGroup.position.y = amount * 1.8;
+
+      wallsSouthGroup.position.z = amount * 2.2;
+      wallsNorthGroup.position.z = -amount * 2.2;
+      wallsWestGroup.position.x = -amount * 2.2;
+      wallsEastGroup.position.x = amount * 2.2;
+
+      const pct = Math.round(amount * 100);
+      const label = amount === 0 ? '0% (ASSEMBLED)' : (amount >= 0.95 ? '100% (FULL EXPLODE)' : `${pct}% EXPLODED`);
+      document.querySelectorAll('.explode-readout').forEach(el => el.innerText = label);
+      document.querySelectorAll('#quick-explode-label').forEach(el => el.innerText = `EXPLODE: ${pct}%`);
+      document.querySelectorAll('#slider-explode').forEach(el => el.value = amount);
+    }
+
+    function setupInteractionListeners() {
+      const dom = renderer.domElement;
+
+      dom.addEventListener('mousedown', (e) => {
+        isDragging = (e.button === 0);
+        isPanning = (e.button === 2);
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+        isPanning = false;
+      });
+
+      dom.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging && !isPanning) return;
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+
+        if (isDragging) {
+          cameraSpherical.theta -= deltaX * 0.007;
+          cameraSpherical.phi = Math.max(0.1, Math.min(Math.PI / 2 + 0.05, cameraSpherical.phi - deltaY * 0.007));
+          updateCameraFromSpherical();
+        } else if (isPanning) {
+          const panSpeed = 0.005 * (cameraSpherical.radius / 10);
+          cameraCenter.x -= deltaX * panSpeed * Math.cos(cameraSpherical.theta);
+          cameraCenter.z += deltaX * panSpeed * Math.sin(cameraSpherical.theta);
+          cameraCenter.y += deltaY * panSpeed;
+          updateCameraFromSpherical();
+        }
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+
+      dom.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        cameraSpherical.radius = Math.max(2.5, Math.min(26.0, cameraSpherical.radius + e.deltaY * 0.01));
+        updateCameraFromSpherical();
+      }, { passive: false });
+
+      // Mobile Touch Interaction
+      let touchStartDist = 0;
+      dom.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        } else if (e.touches.length === 2) {
+          touchStartDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      }, { passive: true });
+
+      dom.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isDragging) {
+          const deltaX = e.touches[0].clientX - previousMousePosition.x;
+          const deltaY = e.touches[0].clientY - previousMousePosition.y;
+          cameraSpherical.theta -= deltaX * 0.008;
+          cameraSpherical.phi = Math.max(0.1, Math.min(Math.PI / 2 + 0.05, cameraSpherical.phi - deltaY * 0.008));
+          updateCameraFromSpherical();
+          previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        } else if (e.touches.length === 2) {
+          const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const factor = (touchStartDist - dist) * 0.02;
+          cameraSpherical.radius = Math.max(2.5, Math.min(26.0, cameraSpherical.radius + factor));
+          touchStartDist = dist;
+          updateCameraFromSpherical();
+        }
+      }, { passive: true });
+
+      dom.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
+    }
+
+    function updateCameraFromSpherical() {
+      const sinPhi = Math.sin(cameraSpherical.phi);
+      const cosPhi = Math.cos(cameraSpherical.phi);
+      const sinTheta = Math.sin(cameraSpherical.theta);
+      const cosTheta = Math.cos(cameraSpherical.theta);
+
+      targetCameraPos.set(
+        cameraCenter.x + cameraSpherical.radius * sinPhi * sinTheta,
+        cameraCenter.y + cameraSpherical.radius * cosPhi,
+        cameraCenter.z + cameraSpherical.radius * sinPhi * cosTheta
+      );
+      targetLookAt.copy(cameraCenter);
+    }
+
+    function setupHotspotsDOM() {
+      const layer = document.getElementById('hotspot-layer');
+      layer.innerHTML = '';
+
+      HOTSPOTS.forEach(spot => {
+        const pin = document.createElement('div');
+        pin.className = 'hotspot-pin';
+        pin.id = `pin-${spot.id}`;
+        pin.innerHTML = `
+          <div class="hotspot-dot"></div>
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded shadow pointer-events-none whitespace-nowrap hidden sm:inline"
+                style="background: var(--panel-bg); color: var(--text); border: 1px solid var(--muted);">
+            ${spot.title}
+          </span>
+        `;
+        pin.addEventListener('click', () => {
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars, 'affirm');
+          selectHotspot(spot);
+        });
+        layer.appendChild(pin);
+      });
+    }
+
+    function selectHotspot(spot) {
+      document.querySelectorAll('.inspect-title').forEach(el => el.innerText = spot.title);
+      document.querySelectorAll('.inspect-desc').forEach(el => el.innerText = spot.desc);
+
+      targetLookAt.copy(spot.pos);
+      cameraCenter.copy(spot.pos);
+      cameraSpherical.radius = 5.2;
+      updateCameraFromSpherical();
+    }
+
+    function updateHotspotsScreenPositions() {
+      if (!hotspotsVisible || explodeProgress > 0.05) {
+        document.getElementById('hotspot-layer').style.display = 'none';
+        return;
+      }
+      document.getElementById('hotspot-layer').style.display = 'block';
+
+      const tempV = new THREE.Vector3();
+      HOTSPOTS.forEach(spot => {
+        const pin = document.getElementById(`pin-${spot.id}`);
+        if (!pin) return;
+
+        tempV.copy(spot.pos);
+        tempV.project(camera);
+
+        if (tempV.z > 1) {
+          pin.style.display = 'none';
+          return;
+        }
+        pin.style.display = 'flex';
+
+        const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+        pin.style.left = `${x}px`;
+        pin.style.top = `${y}px`;
+      });
+    }
+
+    function updateSunTime(hour) {
+      const t = (hour - 6) / 16;
+      const sunAngle = Math.PI * (t - 0.5);
+
+      const sunRadius = 22;
+      sunLight.position.x = Math.sin(sunAngle) * sunRadius;
+      sunLight.position.y = Math.max(0.2, Math.cos(sunAngle) * sunRadius);
+      sunLight.position.z = 10;
+
+      if (hour < 8 || hour > 17.5) {
+        sunLight.color.setHex(0xff7722);
+        sunLight.intensity = Math.max(0.1, Math.cos(sunAngle) * 1.5);
+        ambientLight.color.setHex(0xff8844);
+        ambientLight.groundColor.setHex(0x1a0f0a);
+        scene.background.setHex(0x120806);
+      } else if (hour >= 8 && hour <= 16) {
+        sunLight.color.setHex(0xfffbf2);
+        sunLight.intensity = 1.35;
+        ambientLight.color.setHex(0xeef4ff);
+        ambientLight.groundColor.setHex(0x222a36);
+        scene.background.setHex(0x0a0c10);
+      }
+
+      const isNight = (hour >= 18.5 || hour < 6.5);
+      if (isNight) {
+        sunLight.intensity = 0.05;
+        ambientLight.intensity = 0.2;
+        scene.background.setHex(0x020305);
+        interiorLight1.intensity = 2.0;
+        interiorLight2.intensity = 1.8;
+        shojiGlowLight.intensity = 1.2;
+      } else {
+        interiorLight1.intensity = 0.8;
+        interiorLight2.intensity = 0.7;
+        shojiGlowLight.intensity = 0.3;
+      }
+
+      const hrs = Math.floor(hour);
+      const mins = Math.floor((hour - hrs) * 60);
+      const timeStr = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')} ${hour >= 18 ? '(NIGHT)' : (hour < 9 ? '(DAWN)' : '(DAY)')}`;
+      document.querySelectorAll('.sun-time-display').forEach(el => el.innerText = timeStr);
+      document.querySelectorAll('.slider-sun-input').forEach(el => el.value = hour);
+    }
+
+    function updateSlidingDoors(openT) {
+      doorOpenAmount = openT;
+      if (slidingDoorsGroup && slidingDoorsGroup.userData.leftDoor) {
+        const { leftDoor, origX } = slidingDoorsGroup.userData;
+        leftDoor.position.x = origX + openT * 1.6;
+      }
+      const label = openT === 0 ? 'CLOSED' : (openT >= 0.95 ? 'FULLY OPEN' : `OPEN (${Math.round(openT*100)}%)`);
+      document.querySelectorAll('.door-state-display').forEach(el => el.innerText = label);
+      document.querySelectorAll('.slider-doors-input').forEach(el => el.value = openT);
+    }
+
+    function applyCutaway(mode) {
+      activeCutaway = mode;
+      if (mode === 'full') {
+        roofGroup.visible = true;
+        loftGroup.visible = true;
+      } else if (mode === 'roof-off') {
+        roofGroup.visible = false;
+        loftGroup.visible = true;
+      } else if (mode === 'ground-only') {
+        roofGroup.visible = false;
+        loftGroup.visible = false;
+      }
+      document.querySelectorAll('.active-cutaway-label').forEach(el => el.innerText = mode.toUpperCase());
+
+      document.querySelectorAll('.btn-cutaway').forEach(btn => {
+        const matches = btn.getAttribute('data-cut') === mode;
+        btn.style.background = matches ? 'var(--accent-primary)' : 'transparent';
+        btn.style.color = matches ? 'var(--accent-contrast)' : 'var(--text)';
+        btn.style.borderColor = matches ? 'var(--accent-primary)' : 'var(--muted)';
+      });
+    }
+
+    function refreshMaterials() {
+      scene.remove(houseGroup);
+      scene.remove(roofGroup);
+      buildHouseArchitecture();
+      applyCutaway(activeCutaway);
+      updateSlidingDoors(doorOpenAmount);
+      applyExplode(explodeProgress);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      camera.position.lerp(targetCameraPos, 0.08);
+      currentLookAt.lerp(targetLookAt, 0.08);
+      camera.lookAt(currentLookAt);
+
+      updateHotspotsScreenPositions();
+      renderer.render(scene, camera);
+    }
+  </script>
+
+  <!-- APPLICATION CONTROLLER & INTERACTION EVENT LISTENERS -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      init3D();
+
+      // 1. Direct Single-File HTML Download Action
+      document.getElementById('btn-download-html').addEventListener('click', () => {
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars, 'warp');
+
+        const cleanHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+        const blob = new Blob([cleanHTML], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '9-Tsubo-House-Masuzawa-1952.html';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+
+      // 2. Real-Time Telemetry & Stardate Counter
+      const stardateElem = document.getElementById('telemetry-stardate');
+      let stardateBase = 78104.2;
+      setInterval(() => {
+        stardateBase += 0.01;
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        if (isLcars) {
+          stardateElem.innerText = `SD: ${stardateBase.toFixed(1)} // 3×3 KEN (5.46M²)`;
+        } else {
+          const now = new Date();
+          const y = now.getFullYear();
+          const m = String(now.getMonth() + 1).padStart(2, '0');
+          const d = String(now.getDate()).padStart(2, '0');
+          stardateElem.innerText = `DIN 1451 // DATE: ${y}.${m}.${d} // MOD: 9-TSUBO`;
+        }
+      }, 3000);
+
+      // 3. Responsive Drawer Toggles for Mobile & Desktop
+      const panelLeft = document.getElementById('panel-left');
+      const panelRight = document.getElementById('panel-right');
+
+      function syncMobileDrawers() {
+        if (window.innerWidth < 768) {
+          panelLeft.classList.add('collapsed-left');
+          panelRight.classList.add('collapsed-right');
+        } else {
+          panelLeft.classList.remove('collapsed-left');
+          panelRight.classList.remove('collapsed-right');
+        }
+      }
+      syncMobileDrawers();
+      window.addEventListener('resize', syncMobileDrawers);
+
+      document.getElementById('btn-toggle-left-drawer').addEventListener('click', () => {
+        const isClosed = panelLeft.classList.contains('collapsed-left');
+        panelRight.classList.add('collapsed-right');
+        panelLeft.classList.toggle('collapsed-left', !isClosed);
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars);
+      });
+
+      document.getElementById('btn-toggle-right-drawer').addEventListener('click', () => {
+        const isClosed = panelRight.classList.contains('collapsed-right');
+        panelLeft.classList.add('collapsed-left');
+        panelRight.classList.toggle('collapsed-right', !isClosed);
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars);
+      });
+
+      document.querySelectorAll('.btn-close-left-drawer').forEach(b => {
+        b.addEventListener('click', () => panelLeft.classList.add('collapsed-left'));
+      });
+      document.querySelectorAll('.btn-close-right-drawer').forEach(b => {
+        b.addEventListener('click', () => panelRight.classList.add('collapsed-right'));
+      });
+
+      renderer.domElement.addEventListener('touchstart', () => {
+        if (window.innerWidth < 768) {
+          panelLeft.classList.add('collapsed-left');
+          panelRight.classList.add('collapsed-right');
+        }
+      }, { passive: true });
+
+      // 4. Exploded Axonometric Slider & Quick Toggle
+      document.getElementById('slider-explode').addEventListener('input', (e) => {
+        applyExplode(parseFloat(e.target.value));
+      });
+
+      document.getElementById('btn-quick-explode').addEventListener('click', () => {
+        const nextVal = explodeProgress > 0 ? 0.0 : 0.85;
+        applyExplode(nextVal);
+        if (nextVal > 0) {
+          transitionToView('axonometric');
+        }
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars, 'warp');
+      });
+
+      // 5. Dual Engine Theme Switcher (LCARS <-> DIN E-INK)
+      const themeBtn = document.getElementById('btn-theme-switch');
+      const themeBtnText = document.getElementById('theme-btn-text');
+      const mastheadBadge = document.getElementById('masthead-badge');
+      const mastheadTitle = document.getElementById('masthead-title');
+
+      function toggleTheme() {
+        const current = document.body.getAttribute('data-style');
+        const next = current === 'lcars' ? 'eink' : 'lcars';
+        document.body.setAttribute('data-style', next);
+        localStorage.setItem('nine_tsubo_theme', next);
+
+        if (next === 'lcars') {
+          themeBtnText.innerText = 'STYLE: OKUDA (T)';
+          mastheadBadge.innerText = 'LCARS 9-TSUBO';
+          mastheadTitle.innerHTML = '<span class="md:inline hidden">MAKOTO MASUZAWA 1952 // </span>9-TSUBO MINIMUM HOUSE CAD';
+          audio.lcarsChirp('warp');
+        } else {
+          themeBtnText.innerText = 'STYLE: DIN (T)';
+          mastheadBadge.innerText = 'DIN 1451';
+          mastheadTitle.innerHTML = '<span class="md:inline hidden">GERMAN DIN SPECIFICATION // </span>ARCHITECTURAL ARCHETYPE 9-TSUBO';
+          audio.einkClick();
+        }
+        recalculatePricing();
+      }
+
+      themeBtn.addEventListener('click', toggleTheme);
+
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 't' || e.key === 'T') {
+          toggleTheme();
+        } else if (e.key === 's' || e.key === 'S') {
+          toggleSound();
+        } else if (e.key === 'z' || e.key === 'Z') {
+          toggleZenMode();
+        }
+      });
+
+      const savedTheme = localStorage.getItem('nine_tsubo_theme');
+      if (savedTheme && savedTheme !== 'lcars') {
+        document.body.setAttribute('data-style', savedTheme);
+        themeBtnText.innerText = 'STYLE: DIN (T)';
+        mastheadBadge.innerText = 'DIN 1451';
+        mastheadTitle.innerHTML = '<span class="md:inline hidden">GERMAN DIN SPECIFICATION // </span>ARCHITECTURAL ARCHETYPE 9-TSUBO';
+      }
+
+      // 6. Procedural Audio Toggle
+      const soundBtn = document.getElementById('btn-sound');
+      const soundLabel = document.getElementById('sound-label');
+
+      function toggleSound() {
+        audio.enabled = !audio.enabled;
+        soundLabel.innerText = audio.enabled ? '🔊 SFX: ON' : '🔇 SFX: OFF';
+        if (audio.enabled) {
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars, 'affirm');
+        }
+      }
+      soundBtn.addEventListener('click', toggleSound);
+
+      // 7. Dimension Unit Converter
+      let currentUnitIndex = 0;
+      const unitModes = ['METRIC [M]', 'IMPERIAL [FT]', 'TSUBO [坪]'];
+
+      function cycleUnits() {
+        currentUnitIndex = (currentUnitIndex + 1) % unitModes.length;
+        document.querySelectorAll('#unit-label-text').forEach(el => el.innerText = unitModes[currentUnitIndex]);
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars);
+
+        const footprintEls = document.querySelectorAll('.spec-footprint-val');
+        const totalEls = document.querySelectorAll('.spec-total-val');
+        const gridEls = document.querySelectorAll('.spec-grid-val');
+        const heightEls = document.querySelectorAll('.spec-height-val');
+
+        if (currentUnitIndex === 0) {
+          footprintEls.forEach(el => el.innerText = '9.0 TSUBO / 29.8 M²');
+          totalEls.forEach(el => el.innerText = '15.2 TSUBO / 50.3 M²');
+          gridEls.forEach(el => el.innerText = '3 × 3 KEN (5.46M × 5.46M)');
+          heightEls.forEach(el => el.innerText = '4.82 M (DOUBLE HEIGHT)');
+        } else if (currentUnitIndex === 1) {
+          footprintEls.forEach(el => el.innerText = '321 SQ FT');
+          totalEls.forEach(el => el.innerText = '541 SQ FT');
+          gridEls.forEach(el => el.innerText = '17.9 FT × 17.9 FT');
+          heightEls.forEach(el => el.innerText = '15.8 FT (DOUBLE HEIGHT)');
+        } else {
+          footprintEls.forEach(el => el.innerText = '9.02 坪 (18 畳)');
+          totalEls.forEach(el => el.innerText = '15.22 坪 (30.4 畳)');
+          gridEls.forEach(el => el.innerText = '3 間 × 3 間 (6 尺モジュール)');
+          heightEls.forEach(el => el.innerText = '16 尺 (吹き抜け天井)');
+        }
+      }
+
+      document.getElementById('btn-unit-toggle').addEventListener('click', cycleUnits);
+
+      // 8. Camera Preset Views
+      document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const viewKey = btn.getAttribute('data-view');
+          transitionToView(viewKey);
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars);
+          if (window.innerWidth < 768) {
+            panelLeft.classList.add('collapsed-left');
+          }
+        });
+      });
+
+      // 9. Blueprint CAD Modal
+      const blueprintBtn = document.getElementById('btn-toggle-blueprint');
+      const blueprintModal = document.getElementById('blueprint-modal');
+      const closeBlueprintBtn = document.getElementById('btn-close-blueprint');
+
+      function toggleBlueprintModal(show) {
+        if (show) {
+          blueprintModal.classList.remove('hidden');
+        } else {
+          blueprintModal.classList.add('hidden');
+        }
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars, 'affirm');
+      }
+
+      blueprintBtn.addEventListener('click', () => toggleBlueprintModal(true));
+      closeBlueprintBtn.addEventListener('click', () => toggleBlueprintModal(false));
+      blueprintModal.addEventListener('click', (e) => {
+        if (e.target === blueprintModal) toggleBlueprintModal(false);
+      });
+
+      // 10. Cladding Material Switcher
+      document.querySelectorAll('.btn-cladding').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const clad = btn.getAttribute('data-cladding');
+          currentCladding = clad;
+          document.querySelectorAll('.active-cladding-label').forEach(el => el.innerText = clad.toUpperCase());
+
+          document.querySelectorAll('.btn-cladding').forEach(b => {
+            const matches = b.getAttribute('data-cladding') === clad;
+            b.style.background = matches ? 'var(--accent-primary)' : 'transparent';
+            b.style.color = matches ? 'var(--accent-contrast)' : 'var(--text)';
+            b.style.borderColor = matches ? 'var(--accent-primary)' : 'var(--muted)';
+          });
+
+          refreshMaterials();
+          recalculatePricing();
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars);
+        });
+      });
+
+      // 11. Cutaway Section Switcher
+      document.querySelectorAll('.btn-cutaway').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cutMode = btn.getAttribute('data-cut');
+          applyCutaway(cutMode);
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars);
+        });
+      });
+
+      // 12. Glazing / Shoji Toggle
+      function setGlazing(isShoji) {
+        isShojiActive = isShoji;
+        document.querySelectorAll('.btn-glaze-glass').forEach(b => {
+          b.style.background = !isShoji ? 'var(--accent-tertiary)' : 'transparent';
+          b.style.color = !isShoji ? '#FFFFFF' : 'var(--text)';
+          b.style.borderColor = !isShoji ? 'var(--accent-tertiary)' : 'var(--muted)';
+        });
+        document.querySelectorAll('.btn-glaze-shoji').forEach(b => {
+          b.style.background = isShoji ? 'var(--accent-tertiary)' : 'transparent';
+          b.style.color = isShoji ? '#FFFFFF' : 'var(--text)';
+          b.style.borderColor = isShoji ? 'var(--accent-tertiary)' : 'var(--muted)';
+        });
+        refreshMaterials();
+        recalculatePricing();
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars);
+      }
+
+      document.querySelectorAll('.btn-glaze-glass').forEach(b => b.addEventListener('click', () => setGlazing(false)));
+      document.querySelectorAll('.btn-glaze-shoji').forEach(b => b.addEventListener('click', () => setGlazing(true)));
+
+      // 13. Tatami Room Toggle
+      document.querySelectorAll('.btn-toggle-tatami').forEach(btn => {
+        btn.addEventListener('click', () => {
+          isTatamiActive = !isTatamiActive;
+          tatamiGroup.visible = isTatamiActive;
+          document.querySelectorAll('.btn-toggle-tatami').forEach(b => {
+            b.innerText = isTatamiActive ? 'INSTALLED' : 'REMOVED';
+            b.style.background = isTatamiActive ? 'var(--accent-primary)' : 'transparent';
+            b.style.color = isTatamiActive ? 'var(--accent-contrast)' : 'var(--text)';
+          });
+          recalculatePricing();
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars);
+        });
+      });
+
+      // 14. Hotspots Pins Toggle
+      document.querySelectorAll('.btn-toggle-hotspots').forEach(btn => {
+        btn.addEventListener('click', () => {
+          hotspotsVisible = !hotspotsVisible;
+          document.querySelectorAll('.btn-toggle-hotspots').forEach(b => {
+            b.innerText = hotspotsVisible ? 'VISIBLE' : 'HIDDEN';
+            b.style.background = hotspotsVisible ? 'var(--accent-secondary)' : 'transparent';
+            b.style.color = hotspotsVisible ? 'var(--accent-contrast)' : 'var(--text)';
+          });
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars);
+        });
+      });
+
+      // 15. Sun & Sliding Door Sliders
+      document.querySelectorAll('.slider-sun-input').forEach(slider => {
+        slider.addEventListener('input', (e) => {
+          updateSunTime(parseFloat(e.target.value));
+        });
+      });
+
+      document.querySelectorAll('.slider-doors-input').forEach(slider => {
+        slider.addEventListener('input', (e) => {
+          updateSlidingDoors(parseFloat(e.target.value));
+        });
+      });
+
+      // 16. Zen Fullscreen Viewport Mode
+      const hudRoot = document.getElementById('hud-root');
+      const zenRestoreBtn = document.getElementById('btn-zen-restore');
+
+      function toggleZenMode() {
+        const isHidden = hudRoot.classList.contains('opacity-0');
+        if (isHidden) {
+          hudRoot.classList.remove('opacity-0', 'pointer-events-none');
+          zenRestoreBtn.classList.add('hidden');
+        } else {
+          panelLeft.classList.add('collapsed-left');
+          panelRight.classList.add('collapsed-right');
+          hudRoot.classList.add('opacity-0', 'pointer-events-none');
+          zenRestoreBtn.classList.remove('hidden');
+        }
+        const isLcars = document.body.getAttribute('data-style') === 'lcars';
+        audio.play(isLcars);
+      }
+
+      document.getElementById('btn-zen-mode').addEventListener('click', toggleZenMode);
+      zenRestoreBtn.addEventListener('click', toggleZenMode);
+
+      // 17. Real-Time Turnkey Budget Pricing Estimator
+      function recalculatePricing() {
+        let baseCostYen = 17500000;
+        if (currentCladding === 'cedar') baseCostYen += 950000;
+        if (currentCladding === 'charcoal') baseCostYen += 1200000;
+        if (isTatamiActive) baseCostYen += 450000;
+        if (isShojiActive) baseCostYen += 280000;
+
+        const usdEquivalent = Math.round(baseCostYen / 150.2);
+        document.querySelectorAll('.calc-price-yen').forEach(el => el.innerText = `¥${baseCostYen.toLocaleString()}`);
+        document.querySelectorAll('.calc-price-usd').forEach(el => el.innerText = `$${usdEquivalent.toLocaleString()} USD`);
+      }
+      recalculatePricing();
+
+      // 18. Client Scratchpad (Persisted in localStorage)
+      const savedNotes = localStorage.getItem('nine_tsubo_scratchpad');
+      if (savedNotes) {
+        document.querySelectorAll('.client-scratchpad-input').forEach(el => el.value = savedNotes);
+      }
+
+      document.querySelectorAll('.client-scratchpad-input').forEach(textarea => {
+        textarea.addEventListener('input', (e) => {
+          const val = e.target.value;
+          localStorage.setItem('nine_tsubo_scratchpad', val);
+          document.querySelectorAll('.client-scratchpad-input').forEach(t => t.value = val);
+          document.querySelectorAll('.btn-save-indicator').forEach(ind => {
+            ind.innerText = 'SAVED...';
+            setTimeout(() => { ind.innerText = 'AUTO-SAVED'; }, 800);
+          });
+        });
+      });
+
+      // 19. Export Client Specification Document (.TXT)
+      document.querySelectorAll('.btn-trigger-export').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const isLcars = document.body.getAttribute('data-style') === 'lcars';
+          audio.play(isLcars, 'affirm');
+
+          const specText = `===========================================================
+9-TSUBO MINIMUM HOUSE // CLIENT SPECIFICATION REPORT
+ARCHITECTURAL ARCHETYPE: MAKOTO MASUZAWA (1952)
+===========================================================
+GENERATED: ${new Date().toISOString()}
+ACTIVE UI THEME: ${document.body.getAttribute('data-style').toUpperCase()}
+
+1. DIMENSIONS & STRUCTURAL GRID:
+   - Footprint Grid: 3 ken x 3 ken (5.46 m x 5.46 m)
+   - Ground Footprint: 29.81 m² (9.02 Tsubo / 321 sq ft)
+   - Mezzanine Loft: 20.48 m² (6.20 Tsubo / 220 sq ft)
+   - Total Usable Floor Area: 50.29 m² (15.22 Tsubo / 541 sq ft)
+   - Structural System: Solid Polished Cedar Maruta Columns (丸太柱)
+   - Ridge Height: 4.82 m (Double-Height Central Void)
+
+2. CONFIGURATION & FINISHES:
+   - Selected Exterior Cladding: ${currentCladding.toUpperCase()}
+   - 4-Quadrant Facade Glazing: ${isShojiActive ? 'Washi Paper Shoji Lattice' : 'Clear Insulated High-Performance Glass'}
+   - Sliding Sash Lower Panels: ${doorOpenAmount > 0 ? 'Open Mode' : 'Closed Sealed'}
+   - Washitsu Tatami Suite: ${isTatamiActive ? 'Included (6 Mats with Jimidou Slit Window)' : 'Omitted / Open Living'}
+   - Middle Nook: Enclosed Washbasin Vanity Alcove & Louvered Service Core
+   - Engawa Deck: Exterior Raised Cedar Platform on Concrete Footings
+
+3. COST ESTIMATE:
+   - Estimated Base Build: ${document.querySelector('.calc-price-yen').innerText}
+   - USD Conversion Approx: ${document.querySelector('.calc-price-usd').innerText}
+
+4. CLIENT SCRATCHPAD NOTES:
+${localStorage.getItem('nine_tsubo_scratchpad') || '(No custom client annotations entered)'}
+===========================================================`;
+
+          const blob = new Blob([specText], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `9-Tsubo-House-Spec-${Date.now()}.txt`;
+          link.click();
+          URL.revokeObjectURL(url);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
